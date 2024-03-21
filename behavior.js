@@ -72,5 +72,41 @@ document.addEventListener('mousedown', function (event) {
 // End simuation control
 // ----------------------------------------------
 
+// Canvases
+let canvas_main = null;
+let canvas_xz = null;
+let canvas_yz = null;
+let canvas_xy = null;
+
+// WebGL Contexts
+let gl_main = null;
+let gl_xz = null;
+let gl_yz = null;
+let gl_xy = null;
 
 
+function createVertexData() {
+// Sarah
+}
+
+function configure() {
+// Ziqian 
+}
+
+function allocateMemory() {
+// Jake
+}
+
+function draw() {
+
+}
+
+
+
+
+// Run all functions
+
+createVertexData();
+configure();
+allocateMemory();
+setInterval(draw, 100);
