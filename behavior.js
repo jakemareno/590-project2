@@ -84,6 +84,8 @@ let gl_xz = null;
 let gl_yz = null;
 let gl_xy = null;
 
+let attr_vertex = null;
+let vertex_data = [];
 
 function createVertexData() {
 // Sarah
@@ -94,11 +96,20 @@ function configure() {
 }
 
 function allocateMemory() {
-// Jake
+    let contexts = [gl_main, gl_xy, gl_xz, gl_yz]
+
+    for(let gl of contexts) {
+        let buffer_id = gl.createBuffer();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer_id);
+        gl.vertexAttribPointer(attr_vertex, size, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(attr_vertex);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(vertex_data), gl.STATIC_DRAW);
+    }
 }
 
 function draw() {
-
+    
 }
 
 
