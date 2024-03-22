@@ -1,3 +1,7 @@
+import { Vpl } from './data.js';
+import { Vpp } from './data.js';
+import { Fpl } from './data.js';
+import { Fpp } from './data.js';
 console.clear();
 
 // ----------------------------------------------
@@ -88,7 +92,11 @@ let attr_vertex = null;
 let vertex_data = [];
 
 function createVertexData() {
-// Sarah
+    let plane_vert = Vpl;
+    let prop_vert = Vpp;
+    let plane_face = Fpl;
+    let prop_face = Fpp;
+
 }
 
 function configure() {
