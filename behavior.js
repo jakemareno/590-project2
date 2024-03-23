@@ -17,6 +17,11 @@ let A = [
     [0.0, 0.0, 1.0]
 ];
 
+let plane_vert = Vpl;
+let prop_vert = Vpp;
+let plane_face = Fpl;
+let prop_face = Fpp;
+
 // ----------------------------------------------
 // end axis data
 // ----------------------------------------------
@@ -92,10 +97,28 @@ let attr_vertex = null;
 let vertex_data = [];
 
 function createVertexData() {
-    let plane_vert = Vpl;
-    let prop_vert = Vpp;
-    let plane_face = Fpl;
-    let prop_face = Fpp;
+    
+    let row = 0;
+
+    // add plane vertices + faces to vertex.data
+    for ( let i=0; i<Fpl.length; i++ ) {
+        vertex_data[row++] = Vpl[ Fpl[i][0] ];
+        vertex_data[row++] = Vpl[ Fpl[i][1] ];
+        vertex_data[row++] = Vpl[ Fpl[i][2] ];
+    }
+
+    for ( let i=0; i<Fpp.length; i++ ) {
+        vertex_data[row++] = Vpp[ Fpp[i][0] ];
+        vertex_data[row++] = Vpp[ Fpp[i][1] ];
+        vertex_data[row++] = Vpp[ Fpp[i][2] ];
+    }
+
+    // create axes
+    axis_index = vertex_data.length;
+    
+    for ( let i=0; i<A.length; i++ ) {
+         vertex_data[row++] = A[i];
+    }
 
 }
 
