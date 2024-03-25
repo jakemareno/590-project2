@@ -95,6 +95,13 @@ let gl_yz = null;
 let gl_xy = null;
 let contexts = [gl_main, gl_xz, gl_yz, gl_xy]
 
+// Programs
+let program_main = null;
+let program_xz = null;
+let program_yz = null;
+let program_xy = null;
+let programs = [program_main, program_xz, program_yz, program_xy]
+
 let attr_vertex = null;
 let vertex_data = [];
 
