@@ -132,7 +132,35 @@ function createVertexData() {
 }
 
 function configure() {
-// Ziqian 
+    canvas_main = document.getElementById("xyz");
+    canvas_xz = document.getElementById("xz");
+    canvas_yz = document.getElementById("yz");
+    canvas_xy = document.getElementById("xy");
+
+    gl_main = canvas_main.getContext("webgl");
+    gl_xz = canvas_xz.getContext("webgl");
+    gl_yz = canvas_yz.getContext("webgl");
+    gl_xy = canvas_xy.getContext("webgl");
+
+    let program_main = initShaders(gl_main, "vertex-shader", "fragment-shader");
+    let program_xz = initShaders(gl_xz, "vertex-shader", "fragment-shader");
+    let program_yz = initShaders(gl_yz, "vertex-shader", "fragment-shader");
+    let program_xy = initShaders(gl_xy, "vertex-shader", "fragment-shader");
+
+    gl_main.useProgram(program_main);
+    gl_xz.useProgram(program_xz);
+    gl_yz.useProgram(program_yz);
+    gl_xy.useProgram(program_xy);
+
+    gl_main.viewport( 0, 0, canvas.width, canvas.height );
+    gl_main.enable( webgl_context.DEPTH_TEST );
+
+    attr_vertex = gl_main.getAttribLocation(program_main, "vertex");
+    uniform_props = gl_main.getUniformLocation(program_main, "props");
+    uniform_color = gl_main.getUniformLocation( program, "color" );
+    uniform_z_translation = gl_main.getUniformLocation(program, "z_translation");
+
+
 }
 
 function allocateMemory() {
