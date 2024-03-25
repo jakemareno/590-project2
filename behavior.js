@@ -86,12 +86,14 @@ let canvas_main = null;
 let canvas_xz = null;
 let canvas_yz = null;
 let canvas_xy = null;
+let canvases = [canvas_main, canvas_xz, canvas_yz, canvas_xy]
 
 // WebGL Contexts
 let gl_main = null;
 let gl_xz = null;
 let gl_yz = null;
 let gl_xy = null;
+let contexts = [gl_main, gl_xz, gl_yz, gl_xy]
 
 let attr_vertex = null;
 let vertex_data = [];
@@ -127,8 +129,6 @@ function configure() {
 }
 
 function allocateMemory() {
-    let contexts = [gl_main, gl_xy, gl_xz, gl_yz]
-
     for(let gl of contexts) {
         let buffer_id = gl.createBuffer();
 
