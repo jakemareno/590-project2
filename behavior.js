@@ -272,14 +272,13 @@ function drawPlane(info, xAngle, yAngle, zAngle) {
 
     // draw propeller
         gl = info.gl
-        var x_rotation_radians = xang * Math.PI / 180;
-        var y_rotation_radians = yang * Math.PI / 180;
+        var x_rotation_radians = xAngle * Math.PI / 180;
+        var y_rotation_radians = yAngle * Math.PI / 180;
         var z_rotation_radians = rot * Math.PI / 180;
         
+        gl.uniform4f(info.uniform_color, 0.5, 0.5, 0.5, 0.95);
         gl.uniform1f(info.uniform_z_translation, prop_offset);
-        // console.log(info.uniform_z_translation);
-        // console.log(info.uniform_props);
-        gl.uniform4f(info.uniform_props, xAngle, yAngle, z_rotation_radians, 1.75);
+        gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians, 1.75);
         for (let j = plane_face.length * 3; j < axis_index; j += 3) {
             gl.drawArrays(gl.LINE_STRIP, j, size);
         }
