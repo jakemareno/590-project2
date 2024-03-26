@@ -192,6 +192,7 @@ function allocateMemory() {
 }
 
 function draw() {
+    
     // XYZ 
     drawPlane(contextInfo[0], xang, yang, zang);
 
@@ -203,6 +204,13 @@ function draw() {
 
     // XY roll 
     drawPlane(contextInfo[3], 0, -90, zang);
+
+    let gl = info.gl;
+    var x_rotation_radians = xang * Math.PI / 180;
+    var y_rotation_radians = yang * Math.PI / 180;
+    var z_rotation_radians = rot * Math.PI / 180;
+    
+    gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians);
 
     if(prop_vert){
         rot = (rot + rot_inc) % 360;
@@ -233,6 +241,17 @@ function drawPlane(info, xAngle, yAngle, zAngle) {
 
     gl.uniform4f(info.uniform_color, 0.81, 0.81, 0.81, 1.0);
     gl.drawArrays(gl.TRIANGLES, 0, plane_face.length * 3);
+
+
+    gl.uniform4f(info.uniform_color, 1.0, 0.0, 0.0, 1.0); //red
+    gl.drawArrays(gl.LINES, axis_index, 2);
+
+    gl.uniform4f(info.uniform_color, 0.0, 1.0, 0.0, 1.0);  // Green
+    gl.drawArrays(gl.LINES, axis_index + 2, 2);
+
+    gl.uniform4f(info.uniform_color, 0.0, 0.0, 1.0, 1.0);  // Blue
+    gl.drawArrays(gl.LINES, axis_index + 2 * 2, 2);
+
 
 }
 
