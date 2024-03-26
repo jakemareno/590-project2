@@ -81,35 +81,12 @@ document.addEventListener('mousedown', function (event) {
 // End simuation control
 // ----------------------------------------------
 
-// Canvases
-let canvas_main = null;
-let canvas_xz = null;
-let canvas_yz = null;
-let canvas_xy = null;
-let canvases = [];
-
-// WebGL Contexts
-let gl_main = null;
-let gl_xz = null;
-let gl_yz = null;
-let gl_xy = null;
-let contexts = [];
-
-// Programs
-let program_main = null;
-let program_xz = null;
-let program_yz = null;
-let program_xy = null;
-let programs = [];
-
-let contextInfo = [];
-
-let attr_vertex = null;
-let vertex_data = [];
-let size = 3;
-let axis_index = 0;
-let prop_offset = -0.37;
-uniform_z_translation = null;
+let canvases = [];          // Store all 4 canvases
+let contextInfo = [];       // Store WebGL context info for each canvas
+let vertex_data = [];       // All vertices for plane, prop, and axes
+let size = 3;               // We are rendering with triangles
+let axis_index = 0;         // Will store the length of plane + prop vertices
+let prop_offset = -0.37;    // Used to put propeller at front of plane
 
 function createVertexData() {
     
@@ -139,28 +116,16 @@ function createVertexData() {
 }
 
 function configure() {
-    canvas_main = document.getElementById("xyz");
-    canvas_xz = document.getElementById("xz");
-    canvas_yz = document.getElementById("yz");
-    canvas_xy = document.getElementById("xy");
-    canvases = [canvas_main, canvas_xz, canvas_yz, canvas_xy];
+    // Get each canvas
+    canvases.push(document.getElementById("xyz"));
+    canvases.push(document.getElementById("xz"));
+    canvases.push(document.getElementById("yz"));
+    canvases.push(document.getElementById("xy"));
 
-    gl_main = canvas_main.getContext("webgl");
-    gl_xz = canvas_xz.getContext("webgl");
-    gl_yz = canvas_yz.getContext("webgl");
-    gl_xy = canvas_xy.getContext("webgl");
-    contexts = [gl_main, gl_xz, gl_yz, gl_xy];
-
-    program_main = initShaders(gl_main, "vertex-shader", "fragment-shader");
-    program_xz = initShaders(gl_xz, "vertex-shader", "fragment-shader");
-    program_yz = initShaders(gl_yz, "vertex-shader", "fragment-shader");
-    program_xy = initShaders(gl_xy, "vertex-shader", "fragment-shader");
-    programs = [program_main, program_xz, program_yz, program_xy];
-
-    for (let i = 0; i < contexts.length; i++) {
-        let gl = contexts[i];
-        let canvas = canvases[i];
-        let program = programs[i];
+    // For each canvas, setup WebGL context info
+    for(let canvas of canvases) {
+        let gl = canvas.getContext("webgl");
+        let program = initShaders(gl, "vertex-shader", "fragment-shader");
 
         gl.useProgram(program);
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -202,22 +167,11 @@ function draw() {
     // YZ - pitch
     drawPlane(contextInfo[2], xang, 0, 0);
 
-    // XY roll 
+    // XY - roll 
     drawPlane(contextInfo[3], 0, -90, zang);
 
-    let gl = info.gl;
-    var x_rotation_radians = xang * Math.PI / 180;
-    var y_rotation_radians = yang * Math.PI / 180;
-    var z_rotation_radians = rot * Math.PI / 180;
-    
-    gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians);
-
-    if(prop_vert){
-        rot = (rot + rot_inc) % 360;
-    }
-   
-
 }
+
 function drawPlane(info, xAngle, yAngle, zAngle) {
     let gl = info.gl;
 
@@ -227,38 +181,55 @@ function drawPlane(info, xAngle, yAngle, zAngle) {
         zAngle * Math.PI/180,
         1.75);
 
-    gl.uniform4f(info.uniform_color, 0.5, 0.5, 0.5, 0.95);
-
+    // Draw wireframe for plane
+    gl.uniform4f(info.uniform_color, 0.5, 0.5, 0.5, 1);
     for (let j = 0; j < plane_face.length * 3; j += 3) {
         gl.drawArrays(gl.LINE_STRIP, j, size);
     }
 
+    // Offset for propeller
     gl.uniform1f(info.uniform_z_translation, prop_offset);
+    gl.uniform4f(info.uniform_props,
+        xAngle * Math.PI/180,
+        yAngle * Math.PI/180,
+        (zAngle+rot) * Math.PI/180,
+        1.75);
+
+    // Draw propeller wireframe
     for (let j = plane_face.length * 3; j < axis_index; j += 3) {
         gl.drawArrays(gl.LINE_STRIP, j, size);
     }
-    gl.uniform1f(info.uniform_z_translation, 0);
 
+    // Draw propeller triangles
     gl.uniform4f(info.uniform_color, 0.81, 0.81, 0.81, 1.0);
+    gl.drawArrays(gl.TRIANGLES, plane_face.length * 3, prop_face.length * 3);
+
+    // Reset to default view
+    gl.uniform1f(info.uniform_z_translation, 0);
+    gl.uniform4f(info.uniform_props,
+        xAngle * Math.PI/180,
+        yAngle * Math.PI/180,
+        zAngle * Math.PI/180,
+        1.75);
+
+    // Draw triangles for plane
     gl.drawArrays(gl.TRIANGLES, 0, plane_face.length * 3);
 
-
-    gl.uniform4f(info.uniform_color, 1.0, 0.0, 0.0, 1.0); //red
+    // Draw axes
+    gl.uniform4f(info.uniform_color, 1.0, 0.0, 0.0, 1.0); // Red
     gl.drawArrays(gl.LINES, axis_index, 2);
 
     gl.uniform4f(info.uniform_color, 0.0, 1.0, 0.0, 1.0);  // Green
     gl.drawArrays(gl.LINES, axis_index + 2, 2);
 
     gl.uniform4f(info.uniform_color, 0.0, 0.0, 1.0, 1.0);  // Blue
-    gl.drawArrays(gl.LINES, axis_index + 2 * 2, 2);
+    gl.drawArrays(gl.LINES, axis_index + 4, 2);
 
-
+    rot = ( rot + rot_inc ) % 360
 }
 
 // Run all functions
-
 createVertexData();
 configure();
 allocateMemory();
-//draw();
 setInterval(draw, 100);
