@@ -205,44 +205,62 @@ function draw() {
     // XY roll 
     drawPlane(contextInfo[3], 0, -90, zang);
 
-    let gl = info.gl;
-    var x_rotation_radians = xang * Math.PI / 180;
-    var y_rotation_radians = yang * Math.PI / 180;
-    var z_rotation_radians = rot * Math.PI / 180;
+    // let gl = info.gl;
+    // var x_rotation_radians = xang * Math.PI / 180;
+    // var y_rotation_radians = yang * Math.PI / 180;
+    // var z_rotation_radians = rot * Math.PI / 180;
     
-    gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians);
+    // gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians);
 
-    if(prop_vert){
-        rot = (rot + rot_inc) % 360;
-    }
+    // if(prop_vert){
+    //     rot = (rot + rot_inc) % 360;
+    // }
+    // for( let info of contextInfo ) {
+    //     let gl = info.gl
+    //     var x_rotation_radians = xang * Math.PI / 180;
+    //     var y_rotation_radians = yang * Math.PI / 180;
+    //     var z_rotation_radians = rot * Math.PI / 180;
+        
+    //     gl.uniform4f(info.uniform_props, x_rotation_radians, y_rotation_radians, z_rotation_radians, 1);
+
+    //     if(prop_vert){
+    //         console.log('reached propeller rotation');
+    //         rot = (rot + rot_inc) % 360;
+    //     }
+    // }
    
 
 }
 function drawPlane(info, xAngle, yAngle, zAngle) {
     let gl = info.gl;
 
+    // update plane rotation
     gl.uniform4f(info.uniform_props,
         xAngle * Math.PI/180,
         yAngle * Math.PI/180,
         zAngle * Math.PI/180,
         1.75);
-
+    
+    // draw plane wireframe
     gl.uniform4f(info.uniform_color, 0.5, 0.5, 0.5, 0.95);
 
     for (let j = 0; j < plane_face.length * 3; j += 3) {
         gl.drawArrays(gl.LINE_STRIP, j, size);
     }
 
-    gl.uniform1f(info.uniform_z_translation, prop_offset);
-    for (let j = plane_face.length * 3; j < axis_index; j += 3) {
-        gl.drawArrays(gl.LINE_STRIP, j, size);
-    }
-    gl.uniform1f(info.uniform_z_translation, 0);
+    // draw propeller
+    // gl.uniform1f(info.uniform_z_translation, prop_offset);
+    // for (let j = plane_face.length * 3; j < axis_index; j += 3) {
+    //     gl.drawArrays(gl.LINE_STRIP, j, size);
+    // }
+    // gl.uniform1f(info.uniform_z_translation, 0);
 
+    // draw plane shading
     gl.uniform4f(info.uniform_color, 0.81, 0.81, 0.81, 1.0);
     gl.drawArrays(gl.TRIANGLES, 0, plane_face.length * 3);
 
 
+    // draw x, y, z axes
     gl.uniform4f(info.uniform_color, 1.0, 0.0, 0.0, 1.0); //red
     gl.drawArrays(gl.LINES, axis_index, 2);
 
@@ -252,7 +270,23 @@ function drawPlane(info, xAngle, yAngle, zAngle) {
     gl.uniform4f(info.uniform_color, 0.0, 0.0, 1.0, 1.0);  // Blue
     gl.drawArrays(gl.LINES, axis_index + 2 * 2, 2);
 
+    // draw propeller
+        gl = info.gl
+        var x_rotation_radians = xang * Math.PI / 180;
+        var y_rotation_radians = yang * Math.PI / 180;
+        var z_rotation_radians = rot * Math.PI / 180;
+        
+        // gl.uniform1f(info.uniform_z_translation, prop_offset);
+        // console.log(info.uniform_z_translation);
+        // console.log(info.uniform_props);
+        gl.uniform4f(info.uniform_props, xAngle, yAngle, z_rotation_radians, 1);
+        for (let j = plane_face.length * 3; j < axis_index; j += 3) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+        gl.uniform1f(info.uniform_z_translation, 0);
+        rot = (rot + rot_inc) % 360;
 
+    // }
 }
 
 // Run all functions

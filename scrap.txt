@@ -1,0 +1,52 @@
+function draw() {
+    for(let i = 0; i < 4; i++) {
+        let gl = contexts[i];
+        let uniform_props = props[i];
+        let uniform_color = colors[i];
+        let uniform_z_translation = z_translations[i];
+
+        gl.uniform4f(uniform_props,
+                    xang * Math.PI/180,
+                    yang * Math.PI/180,
+                    zang * Math.PI/180,
+                    1.75);
+
+        gl.uniform4f( uniform_color, 0.60, 0.60, 0.60, 1.0 );
+        for( let j = 0; j < Fpl.length*3; j += 3 ) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+
+        gl.uniform1f( uniform_z_translation, prop_offset);
+        for( let j = Fpl.length*3; j < axis_index; j += 3 ) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+        gl.uniform1f( uniform_z_translation, 0);
+
+        gl.uniform4f( uniform_color, 0.81, 0.81, 0.81, 1.0 ); 
+        gl.drawArrays(gl.TRIANGLES, 0, Fpl.length*3);
+
+        gl.uniform1f( uniform_z_translation, prop_offset);
+        gl.drawArrays(gl.TRIANGLES, Fpl.length*3+1, Fpp.length);
+        gl.uniform1f( uniform_z_translation, 0);
+    }
+
+    rot = (rot + rot_inc) % 360;
+}
+
+
+
+
+// Run all functions
+
+createVertexData();
+configure();
+allocateMemory();
+setInterval(draw, 100);
+
+// new
+gl.uniformf(info.uniform_z_translation, prop_offset,  z_rotation_radians);
+        gl.uniform4f(info.uniform_props, xAngle, yAngle, z_rotation_radians, 1);
+        for (let j = plane_face.length * 3; j < axis_index; j += 3) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+        gl.uniform1f(info.uniform_z_translation, 0);
