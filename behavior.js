@@ -90,20 +90,21 @@ let contexts = [];
 // Programs
 let programs = [];
 
-let attr_vertex = null;
-let vertex_data = [];
-let size = 3;
-let axis_index = 0;
-let prop_offset = -0.375;
-
 // Arrays of uniform locations
 let attr_vertices = [];
 let props = [];
 let colors = [];
 let z_translations = [];
 
+
+let vertex_data = [];
+let size = 3;
+let axis_index = 0;
+let prop_offset = -0.375;
+
+
+
 function createVertexData() {
-    
     let row = 0;
 
     // add plane vertices + faces to vertex.data
