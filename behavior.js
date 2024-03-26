@@ -86,26 +86,30 @@ let canvas_main = null;
 let canvas_xz = null;
 let canvas_yz = null;
 let canvas_xy = null;
-let canvases = null;
+let canvases = [];
 
 // WebGL Contexts
 let gl_main = null;
 let gl_xz = null;
 let gl_yz = null;
 let gl_xy = null;
-let contexts = null;
+let contexts = [];
 
 // Programs
 let program_main = null;
 let program_xz = null;
 let program_yz = null;
 let program_xy = null;
-let programs = null;
+let programs = [];
+
+let contextInfo = [];
 
 let attr_vertex = null;
 let vertex_data = [];
 let size = 3;
 let axis_index = 0;
+let prop_offset = -0.37;
+uniform_z_translation = null;
 
 function createVertexData() {
     
@@ -147,71 +151,90 @@ function configure() {
     gl_xy = canvas_xy.getContext("webgl");
     contexts = [gl_main, gl_xz, gl_yz, gl_xy];
 
-    let program_main = initShaders(gl_main, "vertex-shader", "fragment-shader");
-    let program_xz = initShaders(gl_xz, "vertex-shader", "fragment-shader");
-    let program_yz = initShaders(gl_yz, "vertex-shader", "fragment-shader");
-    let program_xy = initShaders(gl_xy, "vertex-shader", "fragment-shader");
+    program_main = initShaders(gl_main, "vertex-shader", "fragment-shader");
+    program_xz = initShaders(gl_xz, "vertex-shader", "fragment-shader");
+    program_yz = initShaders(gl_yz, "vertex-shader", "fragment-shader");
+    program_xy = initShaders(gl_xy, "vertex-shader", "fragment-shader");
     programs = [program_main, program_xz, program_yz, program_xy];
 
-    gl_main.useProgram(program_main);
-    gl_xz.useProgram(program_xz);
-    gl_yz.useProgram(program_yz);
-    gl_xy.useProgram(program_xy);
-
-    gl_main.viewport( 0, 0, canvas_main.width, canvas_main.height );
-    gl_main.enable( gl_main.DEPTH_TEST );
-
-    /* for(let i = 0; i < 4; i++) {
-        console.log(contexts);
+    for (let i = 0; i < contexts.length; i++) {
         let gl = contexts[i];
+        let canvas = canvases[i];
         let program = programs[i];
-        attr_vertex = gl.getAttribLocation(program, "vertex");
-        uniform_props = gl.getUniformLocation(program, "props");
-        uniform_color = gl.getUniformLocation( program, "color" );
-        uniform_z_translation = gl.getUniformLocation(program, "z_translation");
-    } */
 
-    attr_vertex = gl_main.getAttribLocation( program_main, "vertex" );
-    uniform_props = gl_main.getUniformLocation( program_main, "props" );
-    uniform_color = gl_main.getUniformLocation( program_main, "color" );
-    uniform_z_translation = gl_main.getUniformLocation(program_main, "z_translation");
+        gl.useProgram(program);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.enable(gl.DEPTH_TEST);
+    
+        // Store context information
+        contextInfo.push({
+            gl: gl,
+            program: program,
+            attr_vertex: gl.getAttribLocation(program, "vertex"),
+            uniform_props: gl.getUniformLocation(program, "props"),
+            uniform_color: gl.getUniformLocation(program, "color"),
+            uniform_z_translation: gl.getUniformLocation(program, "z_translation")
+        });
+    }    
+
 }
 
 function allocateMemory() {
-    for(let gl of contexts) {
+    for (let info of contextInfo) {
+        let gl = info.gl;
         let buffer_id = gl.createBuffer();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer_id);
-        gl.vertexAttribPointer(attr_vertex, size, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(attr_vertex);
+        gl.vertexAttribPointer(info.attr_vertex, size, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(info.attr_vertex);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(vertex_data), gl.STATIC_DRAW);
     }
 }
 
 function draw() {
-    let gl = gl_main;
+    // XYZ 
+    drawPlane(contextInfo[0], xang, yang, zang);
 
-    console.log(vertex_data);
-    console.log("hello");
+    // XZ - yaw
+    drawPlane(contextInfo[1], -90, yang, 0);
 
-    console.log([xang, yang, zang]);
-    gl.uniform4f(uniform_props,
-                    xang * Math.PI/180,
-                    yang * Math.PI/180,
-                    zang * Math.PI/180,
-                    1.75);
+    // YZ - pitch
+    drawPlane(contextInfo[2], xang, 0, 0);
 
-    //gl.uniform4f( uniform_color, 0.60, 0.60, 0.60, 1.0 );
-    gl.uniform4f( uniform_color, 0.5, 0.5, 0.5, 0.95);
-    // gl.uniform1f( uniform_z_translation, 0.3);
-    for( let j = 0; j < axis_index; j += 3 ) {
+    // XY roll 
+    drawPlane(contextInfo[3], 0, -90, zang);
+
+    if(prop_vert){
+        rot = (rot + rot_inc) % 360;
+    }
+   
+
+}
+function drawPlane(info, xAngle, yAngle, zAngle) {
+    let gl = info.gl;
+
+    gl.uniform4f(info.uniform_props,
+        xAngle * Math.PI/180,
+        yAngle * Math.PI/180,
+        zAngle * Math.PI/180,
+        1.75);
+
+    gl.uniform4f(info.uniform_color, 0.5, 0.5, 0.5, 0.95);
+
+    for (let j = 0; j < plane_face.length * 3; j += 3) {
         gl.drawArrays(gl.LINE_STRIP, j, size);
     }
 
-    gl.uniform4f( uniform_color, 0.81, 0.81, 0.81, 1.0 ); 
-    gl.drawArrays(gl.TRIANGLES, 0, axis_index);
-}
+    gl.uniform1f(info.uniform_z_translation, prop_offset);
+    for (let j = plane_face.length * 3; j < axis_index; j += 3) {
+        gl.drawArrays(gl.LINE_STRIP, j, size);
+    }
+    gl.uniform1f(info.uniform_z_translation, 0);
 
+    gl.uniform4f(info.uniform_color, 0.81, 0.81, 0.81, 1.0);
+    gl.drawArrays(gl.TRIANGLES, 0, plane_face.length * 3);
+
+}
 
 // Run all functions
 
