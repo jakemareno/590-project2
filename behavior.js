@@ -82,31 +82,25 @@ document.addEventListener('mousedown', function (event) {
 // ----------------------------------------------
 
 // Canvases
-let canvas_main = null;
-let canvas_xz = null;
-let canvas_yz = null;
-let canvas_xy = null;
-let canvases = null;
+let canvases = [];
 
 // WebGL Contexts
-let gl_main = null;
-let gl_xz = null;
-let gl_yz = null;
-let gl_xy = null;
-let contexts = null;
+let contexts = [];
 
 // Programs
-let program_main = null;
-let program_xz = null;
-let program_yz = null;
-let program_xy = null;
-let programs = null;
+let programs = [];
 
 let attr_vertex = null;
 let vertex_data = [];
 let size = 3;
 let axis_index = 0;
 let prop_offset = -0.375;
+
+// Arrays of uniform locations
+let attr_vertices = [];
+let props = [];
+let colors = [];
+let z_translations = [];
 
 function createVertexData() {
     
@@ -136,13 +130,29 @@ function createVertexData() {
 }
 
 function configure() {
-    canvas_main = document.getElementById("xyz");
-    canvas_xz = document.getElementById("xz");
-    canvas_yz = document.getElementById("yz");
-    canvas_xy = document.getElementById("xy");
-    canvases = [canvas_main, canvas_xz, canvas_yz, canvas_xy];
+    canvases.push(document.getElementById("xyz"));
+    canvases.push(document.getElementById("xz"));
+    canvases.push(document.getElementById("yz"));
+    canvases.push(document.getElementById("xy"));
 
-    gl_main = canvas_main.getContext("webgl");
+    for(let canvas of canvases) {
+        let gl = canvas.getContext("webgl");
+        contexts.push(gl);
+
+        let program = initShaders(gl, "vertex-shader", "fragment-shader");
+        programs.push(program);
+
+        gl.useProgram(program);
+        gl.viewport( 0, 0, canvas.width, canvas.height );
+        gl.enable( gl.DEPTH_TEST );
+
+        attr_vertices.push(gl.getAttribLocation( program, "vertex" ));
+        props.push(gl.getUniformLocation( program, "props" ));
+        colors.push(gl.getUniformLocation( program, "color" ));
+        z_translations.push(gl.getUniformLocation(program, "z_translation"));
+    }
+
+    /* gl_main = canvas_main.getContext("webgl");
     gl_xz = canvas_xz.getContext("webgl");
     gl_yz = canvas_yz.getContext("webgl");
     gl_xy = canvas_xy.getContext("webgl");
@@ -162,24 +172,28 @@ function configure() {
     gl_main.viewport( 0, 0, canvas_main.width, canvas_main.height );
     gl_main.enable( gl_main.DEPTH_TEST );
 
-    /* for(let i = 0; i < 4; i++) {
-        console.log(contexts);
+    for(let i = 0; i < 4; i++) {
         let gl = contexts[i];
         let program = programs[i];
-        attr_vertex = gl.getAttribLocation(program, "vertex");
-        uniform_props = gl.getUniformLocation(program, "props");
-        uniform_color = gl.getUniformLocation( program, "color" );
-        uniform_z_translation = gl.getUniformLocation(program, "z_translation");
+
+        attr_vertices.push(gl.getAttribLocation( program, "vertex" ));
+        props.push(gl.getUniformLocation( program, "props" ));
+        colors.push(gl.getUniformLocation( program, "color" ));
+        z_translations.push(gl.getUniformLocation(program, "z_translation"));
     } */
 
+    /*
     attr_vertex = gl_main.getAttribLocation( program_main, "vertex" );
     uniform_props = gl_main.getUniformLocation( program_main, "props" );
     uniform_color = gl_main.getUniformLocation( program_main, "color" );
     uniform_z_translation = gl_main.getUniformLocation(program_main, "z_translation");
+    */
 }
 
 function allocateMemory() {
-    for(let gl of contexts) {
+    for(let i = 0; i < 4; i++) {
+        let gl = contexts[i];
+        let attr_vertex = attr_vertices[i];
         let buffer_id = gl.createBuffer();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer_id);
@@ -190,33 +204,36 @@ function allocateMemory() {
 }
 
 function draw() {
-    let gl = gl_main;
+    for(let i = 0; i < 4; i++) {
+        let gl = contexts[i];
+        let uniform_props = props[i];
+        let uniform_color = colors[i];
+        let uniform_z_translation = z_translations[i];
 
-    console.log([xang, yang, zang]);
-    gl.uniform4f(uniform_props,
-                xang * Math.PI/180,
-                yang * Math.PI/180,
-                zang * Math.PI/180,
-                1.75);
+        gl.uniform4f(uniform_props,
+                    xang * Math.PI/180,
+                    yang * Math.PI/180,
+                    zang * Math.PI/180,
+                    1.75);
 
-    //gl.uniform4f( uniform_color, 0.60, 0.60, 0.60, 1.0 );
-    gl.uniform4f( uniform_color, 0.3,0.3,0.3,1);
-    for( let j = 0; j < Fpl.length*3; j += 3 ) {
-        gl.drawArrays(gl.LINE_STRIP, j, size);
+        gl.uniform4f( uniform_color, 0.60, 0.60, 0.60, 1.0 );
+        for( let j = 0; j < Fpl.length*3; j += 3 ) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+
+        gl.uniform1f( uniform_z_translation, prop_offset);
+        for( let j = Fpl.length*3; j < axis_index; j += 3 ) {
+            gl.drawArrays(gl.LINE_STRIP, j, size);
+        }
+        gl.uniform1f( uniform_z_translation, 0);
+
+        gl.uniform4f( uniform_color, 0.81, 0.81, 0.81, 1.0 ); 
+        gl.drawArrays(gl.TRIANGLES, 0, Fpl.length*3);
+
+        gl.uniform1f( uniform_z_translation, prop_offset);
+        gl.drawArrays(gl.TRIANGLES, Fpl.length*3+1, Fpp.length);
+        gl.uniform1f( uniform_z_translation, 0);
     }
-
-    gl.uniform1f( uniform_z_translation, prop_offset);
-    for( let j = Fpl.length*3; j < axis_index; j += 3 ) {
-        gl.drawArrays(gl.LINE_STRIP, j, size);
-    }
-    gl.uniform1f( uniform_z_translation, 0);
-
-    gl.uniform4f( uniform_color, 0.81, 0.81, 0.81, 1.0 ); 
-    gl.drawArrays(gl.TRIANGLES, 0, Fpl.length*3);
-
-    gl.uniform1f( uniform_z_translation, prop_offset);
-    gl.drawArrays(gl.TRIANGLES, Fpl.length*3+1, Fpp.length);
-    gl.uniform1f( uniform_z_translation, 0);
 
     rot = (rot + rot_inc) % 360;
 }
@@ -229,5 +246,4 @@ function draw() {
 createVertexData();
 configure();
 allocateMemory();
-//draw();
 setInterval(draw, 100);
